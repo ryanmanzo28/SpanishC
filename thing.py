@@ -1,4 +1,4 @@
-from tokenizer import extract_spanish_keywords
+from tokenizer import extract_spanish_keywords, tokenize_spanish_keywords
 
 
 SPANISH_C_KEYWORDS = {
@@ -64,10 +64,20 @@ SPANISH_C_KEYWORDS = {
 
 
 def translate(code: str) -> str:
-    translated = code
-    for spanish, english in SPANISH_C_KEYWORDS.items():
-        translated = translated.replace(spanish, english)
-    return translated
+    tokens = tokenize_spanish_keywords(code)
+    if not tokens:
+        return code
+
+    parts: list[str] = []
+    last_index = 0
+
+    for token in tokens:
+        parts.append(code[last_index:token.start])
+        parts.append(SPANISH_C_KEYWORDS.get(token.value, token.value))
+        last_index = token.end
+
+    parts.append(code[last_index:])
+    return "".join(parts)
 
 
 def main() -> None:
@@ -86,6 +96,7 @@ def main() -> None:
         file.write(translated)
 
     print("Created:", output)
+    return output
 
 
 if __name__ == "__main__":

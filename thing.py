@@ -1,66 +1,45 @@
+from keywords import SPANISH_C_KEYWORD_MAP
 from tokenizer import extract_spanish_keywords, tokenize_spanish_keywords
 
 
-SPANISH_C_KEYWORDS = {
-    # Types
-    "vacio": "void",
-    "entero": "int",
-    "caracter": "char",
-    "flotante": "float",
-    "doble": "double",
-    "largo": "long",
-    "corto": "short",
-    "firmado": "signed",
-    "sin_signo": "unsigned",
-    # Control flow
-    "si": "if",
-    "sino": "else",
-    "mientras": "while",
-    "hacer": "do",
-    "para": "for",
-    "retornar": "return",
-    "romper": "break",
-    "continuar": "continue",
-    # Switch
-    "seleccionar": "switch",
-    "caso": "case",
-    "predeterminado": "default",
-    # Storage classes
-    "automatico": "auto",
-    "registro": "register",
-    "estatico": "static",
-    "externo": "extern",
-    # Constants / qualifiers
-    "constante": "const",
-    "volatil": "volatile",
-    "restringido": "restrict",
-    "en_linea": "inline",
-    # Compound types
-    "estructura": "struct",
-    "union": "union",
-    "enumeracion": "enum",
-    "typedef": "typedef",
-    # Boolean (C99/C23 style)
-    "verdadero": "true",
-    "falso": "false",
-    # Null
-    "nulo": "NULL",
-    # C11/C23 keywords
-    "alinear": "_Alignas",
-    "alineacion": "_Alignof",
-    "atomo": "_Atomic",
-    "sin_retorno": "_Noreturn",
-    "estatico_assert": "_Static_assert",
-    "hilo_local": "_Thread_local",
-    # Preprocessor-like words
-    "incluir": "include",
-    "definir": "define",
-    "si_definido": "ifdef",
-    "si_no_definido": "ifndef",
-    "fin_si": "endif",
-    "advertencia": "warning",
-    "error": "error",
+RUNTIME_CALL_IDENTIFIERS = {
+    "principal",
+    "imprimir",
+    "imprimir_linea",
+    "leer",
+    "imprimir_error",
+    "abrir_archivo",
+    "cerrar_archivo",
+    "reservar_memoria",
+    "reservar_memoria_cero",
+    "redimensionar_memoria",
+    "liberar_memoria",
+    "copiar_cadena",
+    "concatenar_cadena",
+    "comparar_cadena",
+    "longitud_cadena",
+    "salir",
 }
+
+
+def _next_nonspace_index(code: str, start: int) -> int:
+    i = start
+    n = len(code)
+    while i < n and code[i].isspace():
+        i += 1
+    return i
+
+
+def _is_function_like_use(code: str, token_end: int) -> bool:
+    i = _next_nonspace_index(code, token_end)
+    return i < len(code) and code[i] == "("
+
+
+def _is_start_of_line(code: str, token_start: int) -> bool:
+    i = token_start - 1
+    while i >= 0 and code[i] in (" ", "\t", "\r"):
+        i -= 1
+    return i < 0 or code[i] == "\n"
 
 
 def translate(code: str) -> str:
@@ -73,7 +52,17 @@ def translate(code: str) -> str:
 
     for token in tokens:
         parts.append(code[last_index:token.start])
-        parts.append(SPANISH_C_KEYWORDS.get(token.value, token.value))
+        replacement = SPANISH_C_KEYWORD_MAP.get(token.value, token.value)
+
+        # Translate runtime helper names only when used like a call/declaration.
+        if token.value in RUNTIME_CALL_IDENTIFIERS and not _is_function_like_use(code, token.end):
+            replacement = token.value
+
+        # Translate preprocessor aliases only at start of line.
+        if replacement.startswith("#") and not _is_start_of_line(code, token.start):
+            replacement = token.value
+
+        parts.append(replacement)
         last_index = token.end
 
     parts.append(code[last_index:])

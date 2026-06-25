@@ -7,67 +7,7 @@ while ignoring keywords that appear in comments and string/char literals.
 from __future__ import annotations
 
 from dataclasses import dataclass
-
-
-SPANISH_C_KEYWORDS = {
-	# Types
-	"vacio",
-	"entero",
-	"caracter",
-	"flotante",
-	"doble",
-	"largo",
-	"corto",
-	"firmado",
-	"sin_signo",
-	# Control flow
-	"si",
-	"sino",
-	"mientras",
-	"hacer",
-	"para",
-	"retornar",
-	"romper",
-	"continuar",
-	# Switch
-	"seleccionar",
-	"caso",
-	"predeterminado",
-	# Storage classes
-	"automatico",
-	"registro",
-	"estatico",
-	"externo",
-	# Qualifiers and misc
-	"constante",
-	"volatil",
-	"restringido",
-	"en_linea",
-	# Compound types
-	"estructura",
-	"union",
-	"enumeracion",
-	"typedef",
-	# Boolean and null-like
-	"verdadero",
-	"falso",
-	"nulo",
-	# C11/C23 keywords
-	"alinear",
-	"alineacion",
-	"atomo",
-	"sin_retorno",
-	"estatico_assert",
-	"hilo_local",
-	# Preprocessor-like words
-	"incluir",
-	"definir",
-	"si_definido",
-	"si_no_definido",
-	"fin_si",
-	"advertencia",
-	"error",
-}
+from keywords import SPANISH_C_KEYWORDS
 
 
 @dataclass(frozen=True)

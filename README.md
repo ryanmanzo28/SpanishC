@@ -1,4 +1,4 @@
-# SpanishC-To-EnglishC
+# SpanishC
 
 A small Spanish-C transpiler toolkit.
 
@@ -6,11 +6,21 @@ It does 2 core things:
 - Finds Spanish-C keywords in source code.
 - Translates Spanish-C keywords into standard C keywords.
 
+Keyword coverage is centralized in `keywords.py` and shared by tokenizer + translator.
+It includes:
+- core C keywords/types/control-flow
+- preprocessor aliases
+- common runtime/library aliases (for example `imprimir` -> `printf`)
+
 The translator is token-aware, so it only replaces real code tokens and does not modify:
 - comments
 - string literals
 - char literals
 - partial identifier names (example: `entero_variable` stays unchanged)
+
+Runtime/library aliases are context-aware:
+- translated when used as callable identifiers (example: `imprimir(...)`)
+- not translated when used as plain variable names (example: `entero imprimir = 1;`)
 
 ## Project Files
 
@@ -26,7 +36,7 @@ The translator is token-aware, so it only replaces real code tokens and does not
 
 - `main.py`
 	- Compile-and-run wrapper.
-	- Calls `thing.main()` to transpile, then compiles output with `gcc`, then runs it.
+	- Calls `thing.main()` to transpile, then compiles generated C with `gcc`, then runs the executable.
 
 ## Requirements
 
@@ -45,12 +55,24 @@ Then follow prompts:
 1. `File to translate:` enter your Spanish-C source file (example: `program.sc`)
 2. `Enter additional gcc arguments (comma separated):` optional (example: `-Wall,-O2`)
 
+Translator-only mode (no compile/run):
+
+```bash
+python3 thing.py
+```
+
 ## Output
 
 - Prints all recognized Spanish keywords found in the provided source.
 - Writes translated C file next to source:
 	- `program.sc` -> `program.c`
-- Compiles and runs the generated executable.
+- Compiles and runs the translated program when using `python3 main.py`.
+
+Optional manual compile/run (if using `python3 thing.py`):
+
+```bash
+gcc program.c -o program && ./program
+```
 
 ## Example
 
